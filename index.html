@@ -171,13 +171,24 @@
             padding: 10px 14px;
             border: 1px solid #7f5af0;
             background: #18233c;
-            opacity: 0.9;
+            opacity: 0.95;
             color: #e0f2ff;
             max-width: 80%;
         }
         .message.user { align-self: flex-end; }
         .message.user .bubble { background: #253355; }
         .message.assistant { align-self: flex-start; }
+        .copy-btn {
+            font-size: 10px;
+            color: #7f5af0;
+            cursor: pointer;
+            margin-left: 8px;
+            user-select: none;
+            opacity: 0.7;
+        }
+        .copy-btn:hover {
+            opacity: 1;
+        }
         .empty-state {
             display: none;
         }
@@ -474,6 +485,22 @@
             const bubble = document.createElement('div');
             bubble.className = 'bubble';
             bubble.textContent = content;
+
+            const copyBtn = document.createElement('span');
+            copyBtn.className = 'copy-btn';
+            copyBtn.textContent = 'copy';
+            copyBtn.addEventListener('click', async () => {
+                try {
+                    await navigator.clipboard.writeText(content);
+                    copyBtn.textContent = 'copied';
+                    setTimeout(() => {
+                        copyBtn.textContent = 'copy';
+                    }, 3000);
+                } catch (err) {
+                    console.error('Failed to copy: ', err);
+                }
+            });
+            bubble.appendChild(copyBtn);
 
             messageDiv.appendChild(bubble);
             messagesDiv.appendChild(messageDiv);
