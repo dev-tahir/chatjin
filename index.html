@@ -405,6 +405,16 @@
             color: transparent;
             text-shadow: 0 0 20px rgba(118, 212, 255, 0.55), 0 0 40px rgba(181, 140, 255, 0.35);
         }
+        .chat-artwork-message{
+            position: fixed;
+            top: 28%;
+            left: 52%;
+            text-align:center;
+            color:#7f5af0;
+            font-size:15px;
+            font-family:inherit;
+            margin-bottom:2px;
+        }
         @media (max-width: 1080px) {
             .sidebar { display: none; }
             main { grid-template-columns: 1fr; }
@@ -431,19 +441,21 @@
         <div class="page">
         <main>
             <section class="intro">
-                <h2>Quick LLM Chat</h2>
-                <p>Chat instantly with an AI language model—no signup, no server-side history. Your messages stay private on your device. Just type, send, and get fast responses.</p>
+                <h2>FAST CHAT</h2>
+                <p>App that doesn't take light years to load simple messages.</p>
+                <p>Built on Native PHP & HTML. You can Feel The Speed.</p>
+                <!-- <p>Chat instantly with an AI language model—no signup, no server-side history. Your messages stay private on your device. Just type, send, and get fast responses.</p> -->
                 <ul>
-                    <li>Send a message by visiting <code>chatjin.com/your-message</code></li>
-                    <li>Press Enter for quick replies</li>
-                    <li>Click Start Fresh to clear your chat history</li>
+                    <li>No Logins</li>
+                    <li>No Payment</li>
+                    <li>No DB connected</li>
                 </ul>
                 <p>Gemni 2.0 Flash Lite</p>
                 <a href="https://github.com/dev-tahir/chatjin" target="_blank" >View on GitHub</a>
             </section>
             <section class="chat-card is-empty" id="chatCard">
                 <div class="chat-body">
-                    <div class="chat-artwork-message" style="text-align:center; color:#7f5af0; font-size:15px; font-family:inherit; margin-bottom:2px;">Directly send: <code>chatjin.com/this is message</code></div>
+                    <div class="chat-artwork-message"><code>chatJin.com/ask query</code></div>
                     <div class="chat-artwork" aria-hidden="true">
 <pre>
  ████  ██  ██   ████  ████████     ██  ██  ██   ██
