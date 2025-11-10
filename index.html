@@ -260,17 +260,13 @@
         <aside class="sidebar">
             <h3>Recent chats</h3>
             <ul class="recent-list">
-                <li class="recent-item">Product launch debrief</li>
-                <li class="recent-item">Marketing copy tweaks</li>
-                <li class="recent-item">Support handoff script</li>
-                <li class="recent-item">UX polish checklist</li>
             </ul>
         </aside>
         <div class="page">
         <main>
             <section class="intro">
                 <h2>Quick LLM Chat</h2>
-                <p>Chat instantly with an AI language model—no signup, no server-side history. Your messages stay private on your device. Just type, send, and get fast responses. Share links for instant conversations.</p>
+                <p>Chat instantly with an AI language model—no signup, no server-side history. Your messages stay private on your device. Just type, send, and get fast responses.</p>
                 <ul>
                     <li>Send a message by visiting <code>chatjin.com/your-message</code></li>
                     <li>Press Enter for quick replies</li>
@@ -306,14 +302,63 @@
 
     <script>
         let messageHistory = [];
+        let currentChatId = null;
+        let chats = JSON.parse(localStorage.getItem('chats')) || [];
         const messagesDiv = document.getElementById('messages');
         const chatCard = document.getElementById('chatCard');
         const messageInput = document.getElementById('messageInput');
         const sendBtn = document.getElementById('sendBtn');
         const newChatBtn = document.getElementById('newChatBtn');
+        const recentList = document.querySelector('.recent-list');
+
+        // Load recent chats on page load
+        function loadRecentChats() {
+            recentList.innerHTML = '';
+            chats.slice(0, 10).forEach(chat => {
+                const li = document.createElement('li');
+                li.className = 'recent-item';
+                li.textContent = chat.title;
+                li.addEventListener('click', () => loadChat(chat.id));
+                recentList.appendChild(li);
+            });
+        }
+
+        // Load a specific chat
+        function loadChat(chatId) {
+            const chat = chats.find(c => c.id === chatId);
+            if (chat) {
+                currentChatId = chatId;
+                messageHistory = [...chat.messages];
+                messagesDiv.innerHTML = '';
+                chat.messages.forEach(msg => {
+                    addMessage(msg.role, msg.content, false);
+                });
+                chatCard.classList.remove('is-empty');
+                window.history.pushState({}, '', '/');
+            }
+        }
+
+        // Save current chat
+        function saveCurrentChat() {
+            if (messageHistory.length === 0) return;
+
+            if (!currentChatId) {
+                currentChatId = Date.now().toString();
+                const title = messageHistory.find(m => m.role === 'user')?.content.slice(0, 50) || 'New Chat';
+                chats.unshift({ id: currentChatId, title, messages: [] });
+            }
+
+            const chat = chats.find(c => c.id === currentChatId);
+            if (chat) {
+                chat.messages = [...messageHistory];
+                localStorage.setItem('chats', JSON.stringify(chats));
+                loadRecentChats();
+            }
+        }
 
         // Check for URL parameter on load
         window.addEventListener('DOMContentLoaded', () => {
+            loadRecentChats();
             const path = window.location.pathname.substring(1);
             if (path) {
                 const decodedMessage = decodeURIComponent(path);
@@ -323,7 +368,9 @@
 
         // New chat button
         newChatBtn.addEventListener('click', () => {
+            saveCurrentChat();
             messageHistory = [];
+            currentChatId = null;
             messagesDiv.innerHTML = '';
             chatCard.classList.add('is-empty');
             window.history.pushState({}, '', '/');
@@ -357,7 +404,7 @@
             messageInput.disabled = true;
 
             // Show loading
-            const loadingId = addMessage('assistant', 'Thinking...');
+            const loadingId = addMessage('assistant', 'waiting...');
             document.querySelector(`[data-id="${loadingId}"]`).classList.add('loading');
 
             try {
@@ -383,13 +430,16 @@
                 addMessage('assistant', 'Error: Failed to connect');
             }
 
+            // Save after response
+            saveCurrentChat();
+
             // Re-enable input
             sendBtn.disabled = false;
             messageInput.disabled = false;
             messageInput.focus();
         }
 
-        function addMessage(role, content) {
+        function addMessage(role, content, save = true) {
             const msgId = Date.now() + Math.random();
             const messageDiv = document.createElement('div');
             messageDiv.className = `message ${role}`;
@@ -404,6 +454,8 @@
             messageDiv.appendChild(bubble);
             messagesDiv.appendChild(messageDiv);
             messagesDiv.scrollTop = messagesDiv.scrollHeight;
+
+            if (save) saveCurrentChat();
 
             return msgId;
         }
