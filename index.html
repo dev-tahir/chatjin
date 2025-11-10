@@ -1,0 +1,407 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ChatHTML</title>
+        <meta name="description" content="Quick LLM Chat is a fast, privacy-friendly AI chatbot. No signup required, chat instantly, and your history stays on your device.">
+        <meta name="keywords" content="AI chatbot, LLM, quick chat, privacy, no signup, instant messaging">
+        <meta name="robots" content="index, follow">
+        <!-- Open Graph / Facebook -->
+        <meta property="og:title" content="Quick LLM Chat - Fast AI Chatbot" />
+        <meta property="og:description" content="Chat instantly with an AI chatbot. No signup, no server history, privacy-first." />
+        <meta property="og:type" content="website" />
+        <meta property="og:url" content="https://chatjin.com/" />
+        <meta property="og:image" content="https://chatjin.com/og-image.png" />
+        <!-- Twitter Card -->
+        <meta name="twitter:card" content="summary_large_image" />
+        <meta name="twitter:title" content="Quick LLM Chat - Fast AI Chatbot" />
+        <meta name="twitter:description" content="Chat instantly with an AI chatbot. No signup, no server history, privacy-first." />
+        <meta name="twitter:image" content="https://chatjin.com/og-image.png" />
+        <link rel="canonical" href="https://chatjin.com/" />
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: "Courier New", monospace;
+            background: #0c1220;
+            color: #e0f2ff;
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 0;
+            letter-spacing: 0.4px;
+            position: relative;
+        }
+        .layout {
+            width: 100%;
+            max-width: 1200px;
+            position: relative;
+            display: flex;
+            justify-content: center;
+            min-height: 100vh;
+        }
+        .sidebar {
+            position: absolute;
+            right: -180px;
+            top: 48px;
+            width: 160px;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+        .sidebar h3 { 
+            font-size: 12px; 
+            color: #7f5af0;
+            margin-bottom: 4px;
+        }
+        .recent-list {
+            list-style: none;
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+        }
+        .recent-item {
+            font-size: 11px;
+            color: rgba(224, 242, 255, 0.7);
+            cursor: pointer;
+        }
+        .recent-item:hover {
+            color: #e0f2ff;
+        }
+        .page {
+            width: 100%;
+            max-width: 1080px;
+            border: none;
+            background: #111b2e;
+            padding: 0;
+            display: flex;
+            flex-direction: column;
+            min-height: 100vh;
+        }
+        main {
+            display: grid;
+            grid-template-columns: minmax(200px, 25%) minmax(0, 1fr);
+            gap: 0;
+            flex: 1;
+            align-items: stretch;
+            overflow: hidden;
+            height: 100%;
+        }
+        .intro {
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+            padding: 28px;
+            margin: 68px 0;
+        }
+        .intro h2 { font-size: 30px; color: #7f5af0; }
+        .intro p { font-size: 15px; line-height: 1.5; }
+        .intro ul { list-style: square; margin-left: 20px; display: flex; flex-direction: column; gap: 6px; font-size: 14px; }
+        .intro code { color: #7f5af0; }
+        #newChatBtn, #sendBtn {
+            background: #1f2b45;
+            color: #e0f2ff;
+            border: 1px solid #7f5af0;
+            padding: 10px 18px;
+            cursor: pointer;
+        }
+        #newChatBtn:hover, #sendBtn:hover { background: #2b3960; }
+        #sendBtn:disabled { opacity: 0.5; cursor: not-allowed; }
+        .chat-card {
+            background: #0c1324;
+            border: none;
+            border-left: 1px dashed #7f5af0;
+            display: flex;
+            flex-direction: column;
+            flex: 1;
+            margin: 28px 0;
+            position: relative;
+            overflow: hidden;
+        }
+        .chat-body { 
+            flex: 1; 
+            padding: 18px; 
+            overflow-y: auto; 
+            display: flex; 
+            flex-direction: column; 
+            position: relative;
+        }
+        .chat-artwork {
+            position: absolute;
+            top: 40%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            z-index: 1;
+            pointer-events: none;
+            padding: 28px 36px;
+            user-select: none;
+            -webkit-user-select: none;
+            filter: drop-shadow(0 12px 32px rgba(127, 90, 240, 0.35)) drop-shadow(0 4px 12px rgba(0, 0, 0, 0.4));
+        }
+        .chat-card.is-empty .chat-body {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+        #messages { 
+            display: flex; 
+            flex-direction: column; 
+            gap: 14px; 
+            position: relative;
+            z-index: 2;
+            flex: 1;
+            width: 100%;
+        }
+        .bubble {
+            padding: 10px 14px;
+            border: 1px solid #7f5af0;
+            background: #18233c;
+            opacity: 0.9;
+            color: #e0f2ff;
+            max-width: 80%;
+        }
+        .message.user { align-self: flex-end; }
+        .message.user .bubble { background: #253355; }
+        .message.assistant { align-self: flex-start; }
+        .empty-state {
+            display: none;
+        }
+        .chat-input {
+            padding: 18px;
+            border-top: 1px dashed #7f5af0;
+            background: #0c1324;
+            position: relative;
+            z-index: 3;
+        }
+        .chat-card.is-empty .chat-input {
+            border-top: none;
+            background: transparent;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            position: absolute;
+            top: 55%;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 100%;
+            padding: 0;
+        }
+        .input-row { 
+            display: flex; 
+            gap: 10px; 
+            max-width: 100%;
+        }
+        .chat-card.is-empty .input-row {
+            max-width: 580px;
+            width: 100%;
+        }
+        #messageInput {
+            flex: 1;
+            padding: 10px 12px;
+            background: #0c1324;
+            border: 1px dashed #7f5af0;
+            color: #e0f2ff;
+        }
+        .chat-card.is-empty #messageInput {
+            padding: 14px 18px;
+            font-size: 16px;
+            text-align: center;
+        }
+        #messageInput:focus { outline: none; box-shadow: 0 0 0 2px rgba(127, 90, 240, 0.25); }
+        .chat-card.is-empty #sendBtn {
+            padding: 14px 24px;
+            font-size: 16px;
+        }
+        .loading { opacity: 0.7; }
+        .chat-artwork::after {
+            content: "";
+            position: absolute;
+            inset: 0;
+            background-image:
+                linear-gradient(rgba(14, 20, 38, 0.45) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(14, 20, 38, 0.45) 1px, transparent 1px);
+            background-size: 14px 14px;
+            pointer-events: none;
+            opacity: 0;
+            mix-blend-mode: screen;
+        }
+        .chat-artwork pre {
+            margin: 0;
+            font-family: "Courier New", monospace;
+            font-size: 18px;
+            letter-spacing: 1.6px;
+            line-height: 1.1;
+            text-transform: uppercase;
+            background: linear-gradient(90deg, #76d4ff 0%, #b58cff 50%, #ff9ad3 100%);
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+            text-shadow: 0 0 20px rgba(118, 212, 255, 0.55), 0 0 40px rgba(181, 140, 255, 0.35);
+        }
+        @media (max-width: 1080px) {
+            .sidebar { display: none; }
+            main { grid-template-columns: 1fr; }
+        }
+        @media (max-width: 720px) {
+            body { padding: 12px; }
+            .page { padding: 18px; }
+            main { gap: 18px; }
+        }
+    </style>
+</head>
+<body>
+    <div class="layout">
+        <aside class="sidebar">
+            <h3>Recent chats</h3>
+            <ul class="recent-list">
+                <li class="recent-item">Product launch debrief</li>
+                <li class="recent-item">Marketing copy tweaks</li>
+                <li class="recent-item">Support handoff script</li>
+                <li class="recent-item">UX polish checklist</li>
+            </ul>
+        </aside>
+        <div class="page">
+        <main>
+            <section class="intro">
+                <h2>Quick LLM Chat</h2>
+                <p>Chat instantly with an AI language model—no signup, no server-side history. Your messages stay private on your device. Just type, send, and get fast responses. Share links for instant conversations.</p>
+                <ul>
+                    <li>Send a message by visiting <code>chatjin.com/your-message</code></li>
+                    <li>Press Enter for quick replies</li>
+                    <li>Click Start Fresh to clear your chat history</li>
+                </ul>
+                <button id="newChatBtn">Start Fresh</button>
+            </section>
+            <section class="chat-card is-empty" id="chatCard">
+                <div class="chat-body">
+                    <div class="chat-artwork-message" style="text-align:center; color:#7f5af0; font-size:15px; font-family:inherit; margin-bottom:2px;">Directly send: <code>chatjin.com/this is message</code></div>
+                    <div class="chat-artwork" aria-hidden="true">
+<pre> ####  ##  ##   ####  ########        ##  ##  ##   ##
+##     ##  ##  ##  ##    ##           ##  ##  ###  ##
+##     ######  ######    ##           ##  ##  ## # ##
+##     ##  ##  ##  ##    ##      ##   ##  ##  ##  ###
+ ####  ##  ##  ##  ##    ##       #####   ##  ##   ##</pre>
+                    </div>
+                    <div id="messages">
+                    </div>
+                </div>
+                <div class="chat-input" id="chatInput">
+                    <div class="input-row">
+                        <input type="text" id="messageInput" placeholder="Ask anything…" autocomplete="off">
+                        <button id="sendBtn">Send</button>
+                    </div>
+                </div>
+                    </div>
+                </div>
+            </section>
+        </main>
+        </div>
+    </div>
+
+    <script>
+        let messageHistory = [];
+        const messagesDiv = document.getElementById('messages');
+        const chatCard = document.getElementById('chatCard');
+        const messageInput = document.getElementById('messageInput');
+        const sendBtn = document.getElementById('sendBtn');
+        const newChatBtn = document.getElementById('newChatBtn');
+
+        // Check for URL parameter on load
+        window.addEventListener('DOMContentLoaded', () => {
+            const path = window.location.pathname.substring(1);
+            if (path) {
+                const decodedMessage = decodeURIComponent(path);
+                sendMessage(decodedMessage);
+            }
+        });
+
+        // New chat button
+        newChatBtn.addEventListener('click', () => {
+            messageHistory = [];
+            messagesDiv.innerHTML = '';
+            chatCard.classList.add('is-empty');
+            window.history.pushState({}, '', '/');
+        });
+
+        // Send button
+        sendBtn.addEventListener('click', () => {
+            const message = messageInput.value.trim();
+            if (message) {
+                sendMessage(message);
+                messageInput.value = '';
+            }
+        });
+
+        // Enter key to send
+        messageInput.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') {
+                sendBtn.click();
+            }
+        });
+
+        async function sendMessage(message) {
+            // Display user message
+            addMessage('user', message);
+            
+            // Add to history
+            messageHistory.push({ role: 'user', content: message });
+
+            // Disable input
+            sendBtn.disabled = true;
+            messageInput.disabled = true;
+
+            // Show loading
+            const loadingId = addMessage('assistant', 'Thinking...');
+            document.querySelector(`[data-id="${loadingId}"]`).classList.add('loading');
+
+            try {
+                const response = await fetch('chat.php', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ messages: messageHistory })
+                });
+
+                const data = await response.json();
+
+                // Remove loading message
+                document.querySelector(`[data-id="${loadingId}"]`).remove();
+
+                if (data.error) {
+                    addMessage('assistant', 'Error: ' + data.error);
+                } else {
+                    addMessage('assistant', data.message);
+                    messageHistory.push({ role: 'assistant', content: data.message });
+                }
+            } catch (error) {
+                document.querySelector(`[data-id="${loadingId}"]`).remove();
+                addMessage('assistant', 'Error: Failed to connect');
+            }
+
+            // Re-enable input
+            sendBtn.disabled = false;
+            messageInput.disabled = false;
+            messageInput.focus();
+        }
+
+        function addMessage(role, content) {
+            const msgId = Date.now() + Math.random();
+            const messageDiv = document.createElement('div');
+            messageDiv.className = `message ${role}`;
+            messageDiv.setAttribute('data-id', msgId);
+
+            chatCard.classList.remove('is-empty');
+
+            const bubble = document.createElement('div');
+            bubble.className = 'bubble';
+            bubble.textContent = content;
+
+            messageDiv.appendChild(bubble);
+            messagesDiv.appendChild(messageDiv);
+            messagesDiv.scrollTop = messagesDiv.scrollHeight;
+
+            return msgId;
+        }
+    </script>
+</body>
+</html>
