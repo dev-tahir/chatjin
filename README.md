@@ -1,3 +1,5 @@
+
+![ChatJin Logo](chatjin.jpg)
 # ChatHTML
 
 A lightning-fast, minimal single-page chat application using OpenRouter API.
