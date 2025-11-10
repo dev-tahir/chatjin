@@ -168,12 +168,16 @@
             width: 100%;
         }
         .bubble {
-            padding: 10px 14px;
+            padding: 10px 14px 10px 24px;
             border: 1px solid #7f5af0;
             background: #18233c;
             opacity: 0.95;
             color: #e0f2ff;
-            max-width: 80%;
+            max-width: 97%;
+            position: relative;
+            word-wrap: break-word;
+            overflow-wrap: break-word;
+            overflow-x: hidden;
         }
         .message.user { align-self: flex-end; }
         .message.user .bubble { background: #253355; }
@@ -185,9 +189,147 @@
             margin-left: 8px;
             user-select: none;
             opacity: 0.7;
+            display: inline-block;
         }
         .copy-btn:hover {
             opacity: 1;
+        }
+        .bubble code {
+            background: #0c1324;
+            padding: 2px 6px;
+            border-radius: 3px;
+            font-family: 'Courier New', monospace;
+            font-size: 0.9em;
+            color: #76d4ff;
+        }
+        .code-block-wrapper {
+            position: relative;
+            margin: 8px 0;
+            overflow: hidden;
+        }
+        .code-block-header {
+            background: #0a0f1a;
+            padding: 6px 10px;
+            border-bottom: 1px solid #7f5af0;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 11px;
+        }
+        .code-language {
+            color: #7f5af0;
+            font-weight: bold;
+            text-transform: uppercase;
+        }
+        .code-copy-btn {
+            background: #1f2b45;
+            border: 1px solid #7f5af0;
+            color: #e0f2ff;
+            padding: 4px 10px;
+            cursor: pointer;
+            font-size: 10px;
+            border-radius: 3px;
+        }
+        .code-copy-btn:hover {
+            background: #2b3960;
+        }
+        .bubble pre {
+            background: #0c1324;
+            padding: 12px;
+            border-radius: 0;
+            overflow-x: auto;
+            margin: 0;
+            border: 1px solid #7f5af0;
+            border-top: none;
+            border-left: none;
+            border-right: none;
+            max-width: 100%;
+        }
+        .bubble pre code {
+            background: none;
+            padding: 0;
+            color: #e0f2ff;
+            display: block;
+            line-height: 1.5;
+            white-space: pre-wrap;
+        }
+        .bubble a {
+            color: #76d4ff;
+            text-decoration: underline;
+        }
+        .bubble h1, .bubble h2, .bubble h3, .bubble h4, .bubble h5, .bubble h6 {
+            color: #7f5af0;
+            margin: 12px 0 8px 0;
+            font-weight: bold;
+            line-height: 1.3;
+        }
+        .bubble h1 { font-size: 1.8em; }
+        .bubble h2 { font-size: 1.5em; }
+        .bubble h3 { font-size: 1.3em; }
+        .bubble h4 { font-size: 1.1em; }
+        .bubble h5 { font-size: 1em; }
+        .bubble h6 { font-size: 0.9em; }
+        .bubble ul, .bubble ol {
+            margin: 8px 0;
+            padding-left: 24px;
+        }
+        .bubble li {
+            margin: 4px 0;
+            line-height: 1.5;
+        }
+        .bubble ul ul, .bubble ol ol, .bubble ul ol, .bubble ol ul {
+            margin: 2px 0;
+        }
+        .bubble blockquote {
+            border-left: 3px solid #7f5af0;
+            padding-left: 12px;
+            margin: 8px 0;
+            color: #b58cff;
+        }
+        .bubble blockquote blockquote {
+            margin-top: 4px;
+        }
+        .bubble hr {
+            border: none;
+            border-top: 1px solid #7f5af0;
+            margin: 12px 0;
+        }
+        .bubble table {
+            border-collapse: collapse;
+            margin: 8px 0;
+            width: 100%;
+        }
+        .bubble th {
+            border: 1px solid #7f5af0;
+            padding: 8px;
+            background: #1f2b45;
+            font-weight: bold;
+            text-align: left;
+        }
+        .bubble td {
+            border: 1px solid #7f5af0;
+            padding: 8px;
+        }
+        .bubble tr:nth-child(even) {
+            background: rgba(127, 90, 240, 0.05);
+        }
+        .bubble img {
+            max-width: 100%;
+            height: auto;
+            margin: 8px 0;
+            border-radius: 4px;
+        }
+        .bubble p {
+            margin: 8px 0;
+            line-height: 1.6;
+        }
+        .bubble strong {
+            color: #b58cff;
+            font-weight: bold;
+        }
+        .bubble em {
+            color: #76d4ff;
+            font-style: italic;
         }
         .empty-state {
             display: none;
@@ -275,6 +417,7 @@
             .intro { display: none; }
             .chat-artwork { padding: 8px 10px; }
             .chat-artwork pre { font-size: 8px; letter-spacing: 0.8px; }
+            .bubble { max-width: 95%; }
         }
     </style>
 </head>
@@ -474,6 +617,259 @@
             messageInput.focus();
         }
 
+        function escapeHtml(text) {
+            const div = document.createElement('div');
+            div.textContent = text;
+            return div.innerHTML;
+        }
+
+        function parseMarkdown(text) {
+            // First, extract and protect code blocks
+            const codeBlocks = [];
+            let codeBlockId = 0;
+            
+            // Match fenced code blocks with optional language
+            text = text.replace(/```(\w*)\n?([\s\S]*?)```/g, (match, lang, code) => {
+                const id = `CODEBLOCK${codeBlockId++}PLACEHOLDER`;
+                codeBlocks.push({ id, lang: lang || 'code', code: code.trim() });
+                return `\n\n${id}\n\n`;
+            });
+
+            // Escape HTML for safety
+            text = escapeHtml(text);
+
+            // Process line by line for block-level elements
+            const lines = text.split('\n');
+            const processed = [];
+            let inList = false;
+            let listType = '';
+            let listDepth = 0;
+            let inTable = false;
+            let tableRows = [];
+
+            for (let i = 0; i < lines.length; i++) {
+                let line = lines[i];
+
+                // Check if line is a code block placeholder
+                if (line.trim().match(/^CODEBLOCK\d+PLACEHOLDER$/)) {
+                    if (inList) {
+                        processed.push(`</${listType}>`);
+                        inList = false;
+                        listType = '';
+                    }
+                    if (inTable) {
+                        processed.push(buildTable(tableRows));
+                        inTable = false;
+                        tableRows = [];
+                    }
+                    processed.push(line.trim());
+                    continue;
+                }
+
+                // Skip empty lines in certain contexts
+                if (line.trim() === '') {
+                    if (inList) {
+                        processed.push(`</${listType}>`);
+                        inList = false;
+                        listType = '';
+                    }
+                    if (inTable) {
+                        processed.push(buildTable(tableRows));
+                        inTable = false;
+                        tableRows = [];
+                    }
+                    processed.push('<br>');
+                    continue;
+                }
+
+                // Headers (must be at start of line)
+                const headerMatch = line.match(/^(#{1,6})\s+(.+)$/);
+                if (headerMatch) {
+                    if (inList) {
+                        processed.push(`</${listType}>`);
+                        inList = false;
+                    }
+                    if (inTable) {
+                        processed.push(buildTable(tableRows));
+                        inTable = false;
+                        tableRows = [];
+                    }
+                    const level = headerMatch[1].length;
+                    const content = headerMatch[2];
+                    processed.push(`<h${level}>${content}</h${level}>`);
+                    continue;
+                }
+
+                // Horizontal rule
+                if (/^[-*_]{3,}$/.test(line.trim())) {
+                    if (inList) {
+                        processed.push(`</${listType}>`);
+                        inList = false;
+                    }
+                    if (inTable) {
+                        processed.push(buildTable(tableRows));
+                        inTable = false;
+                        tableRows = [];
+                    }
+                    processed.push('<hr>');
+                    continue;
+                }
+
+                // Tables
+                if (line.includes('|') && line.trim().startsWith('|')) {
+                    if (inList) {
+                        processed.push(`</${listType}>`);
+                        inList = false;
+                    }
+                    if (/^\|[\s\-:|]+\|$/.test(line.trim())) {
+                        continue;
+                    }
+                    inTable = true;
+                    const cells = line.split('|').map(c => c.trim()).filter(c => c);
+                    tableRows.push(cells);
+                    continue;
+                } else if (inTable) {
+                    processed.push(buildTable(tableRows));
+                    inTable = false;
+                    tableRows = [];
+                }
+
+                // Blockquotes
+                const bqMatch = line.match(/^(>+)\s*(.*)$/);
+                if (bqMatch) {
+                    if (inList) {
+                        processed.push(`</${listType}>`);
+                        inList = false;
+                    }
+                    const level = bqMatch[1].length;
+                    const content = bqMatch[2];
+                    processed.push('<blockquote>'.repeat(level) + (content || '') + '</blockquote>'.repeat(level));
+                    continue;
+                }
+
+                // Lists - Unordered
+                const ulMatch = line.match(/^(\s*)([-*+])\s+(.+)$/);
+                if (ulMatch) {
+                    const indent = ulMatch[1].length;
+                    const content = ulMatch[3];
+                    const depth = Math.floor(indent / 2);
+                    
+                    if (!inList || listType !== 'ul' || depth !== listDepth) {
+                        if (inList && depth <= listDepth) {
+                            processed.push(`</${listType}>`);
+                        }
+                        if (depth > listDepth) {
+                            processed.push('<ul>');
+                        }
+                        inList = true;
+                        listType = 'ul';
+                        listDepth = depth;
+                    }
+                    processed.push(`<li>${content}</li>`);
+                    continue;
+                }
+
+                // Lists - Ordered
+                const olMatch = line.match(/^(\s*)(\d+)\.\s+(.+)$/);
+                if (olMatch) {
+                    const indent = olMatch[1].length;
+                    const content = olMatch[3];
+                    const depth = Math.floor(indent / 2);
+                    
+                    if (!inList || listType !== 'ol' || depth !== listDepth) {
+                        if (inList && depth <= listDepth) {
+                            processed.push(`</${listType}>`);
+                        }
+                        if (depth > listDepth) {
+                            processed.push('<ol>');
+                        }
+                        inList = true;
+                        listType = 'ol';
+                        listDepth = depth;
+                    }
+                    processed.push(`<li>${content}</li>`);
+                    continue;
+                }
+
+                // End list if we're in one
+                if (inList) {
+                    processed.push(`</${listType}>`);
+                    inList = false;
+                    listType = '';
+                }
+
+                // Regular paragraph
+                processed.push(`<p>${line}</p>`);
+            }
+
+            // Close any remaining open tags
+            if (inList) {
+                processed.push(`</${listType}>`);
+            }
+            if (inTable) {
+                processed.push(buildTable(tableRows));
+            }
+
+            text = processed.join('');
+
+            // Inline formatting (order matters!)
+            text = text.replace(/\*\*\*(.+?)\*\*\*/g, '<strong><em>$1</em></strong>');
+            text = text.replace(/___(?!CODE)(.+?)___/g, '<strong><em>$1</em></strong>');
+            text = text.replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>');
+            text = text.replace(/__(?!CODE)(.+?)__/g, '<strong>$1</strong>');
+            text = text.replace(/\*(.+?)\*/g, '<em>$1</em>');
+            text = text.replace(/_(?!CODE)(.+?)_/g, '<em>$1</em>');
+            text = text.replace(/`([^`]+)`/g, '<code>$1</code>');
+            text = text.replace(/\[([^\]]+)\]\(([^)]+?)(?:\s+"([^"]*)")?\)/g, (match, text, url, title) => {
+                if (title) {
+                    return `<a href="${url}" title="${title}" target="_blank">${text}</a>`;
+                }
+                return `<a href="${url}" target="_blank">${text}</a>`;
+            });
+            text = text.replace(/!\[([^\]]*)\]\(([^)]+)\)/g, '<img src="$2" alt="$1">');
+
+            // Restore code blocks with proper formatting
+            codeBlocks.forEach(block => {
+                const codeId = 'code_' + Math.random().toString(36).substr(2, 9);
+                const codeHtml = `<div class="code-block-wrapper">
+                                <div class="code-block-header">
+                                    <span class="code-language">${escapeHtml(block.lang)}</span>
+                                    <button class="code-copy-btn" data-code-id="${codeId}">Copy</button>
+                                </div>
+                                <pre><code id="${codeId}">${escapeHtml(block.code)}</code></pre>
+                            </div>`;
+                text = text.replace(block.id, codeHtml);
+            });
+
+            return text;
+        }
+        function buildTable(rows) {
+            if (rows.length === 0) return '';
+            
+            let html = '<table>';
+            
+            // First row is header
+            if (rows.length > 0) {
+                html += '<tr>';
+                rows[0].forEach(cell => {
+                    html += `<th>${cell}</th>`;
+                });
+                html += '</tr>';
+            }
+            
+            // Remaining rows are body
+            for (let i = 1; i < rows.length; i++) {
+                html += '<tr>';
+                rows[i].forEach(cell => {
+                    html += `<td>${cell}</td>`;
+                });
+                html += '</tr>';
+            }
+            
+            html += '</table>';
+            return html;
+        }
+
         function addMessage(role, content, save = true) {
             const msgId = Date.now() + Math.random();
             const messageDiv = document.createElement('div');
@@ -484,23 +880,51 @@
 
             const bubble = document.createElement('div');
             bubble.className = 'bubble';
-            bubble.textContent = content;
+            bubble.innerHTML = parseMarkdown(content);
 
+            // Add message-level copy button
             const copyBtn = document.createElement('span');
             copyBtn.className = 'copy-btn';
             copyBtn.textContent = 'copy';
             copyBtn.addEventListener('click', async () => {
                 try {
                     await navigator.clipboard.writeText(content);
-                    copyBtn.textContent = 'copied';
+                    copyBtn.textContent = 'copied!';
                     setTimeout(() => {
                         copyBtn.textContent = 'copy';
-                    }, 3000);
+                    }, 2000);
                 } catch (err) {
                     console.error('Failed to copy: ', err);
+                    copyBtn.textContent = 'failed';
+                    setTimeout(() => {
+                        copyBtn.textContent = 'copy';
+                    }, 2000);
                 }
             });
             bubble.appendChild(copyBtn);
+
+            // Add event listeners for code block copy buttons
+            bubble.querySelectorAll('.code-copy-btn').forEach(btn => {
+                btn.addEventListener('click', async (e) => {
+                    const codeId = btn.getAttribute('data-code-id');
+                    const codeElement = document.getElementById(codeId);
+                    if (codeElement) {
+                        try {
+                            await navigator.clipboard.writeText(codeElement.textContent);
+                            btn.textContent = 'Copied!';
+                            setTimeout(() => {
+                                btn.textContent = 'Copy';
+                            }, 2000);
+                        } catch (err) {
+                            console.error('Failed to copy code: ', err);
+                            btn.textContent = 'Failed';
+                            setTimeout(() => {
+                                btn.textContent = 'Copy';
+                            }, 2000);
+                        }
+                    }
+                });
+            });
 
             messageDiv.appendChild(bubble);
             messagesDiv.appendChild(messageDiv);
