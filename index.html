@@ -323,7 +323,6 @@
         const chatCard = document.getElementById('chatCard');
         const messageInput = document.getElementById('messageInput');
         const sendBtn = document.getElementById('sendBtn');
-        const newChatBtn = document.getElementById('newChatBtn');
         const sidebarNewChatBtn = document.getElementById('sidebarNewChatBtn');
         const recentList = document.querySelector('.recent-list');
 
@@ -384,16 +383,6 @@
             }
         });
 
-        // New chat button
-        newChatBtn.addEventListener('click', () => {
-            saveCurrentChat();
-            messageHistory = [];
-            currentChatId = null;
-            messagesDiv.innerHTML = '';
-            chatCard.classList.add('is-empty');
-            window.history.pushState({}, '', '/');
-        });
-
         // Sidebar new chat button
         sidebarNewChatBtn.addEventListener('click', () => {
             saveCurrentChat();
@@ -436,12 +425,15 @@
             document.querySelector(`[data-id="${loadingId}"]`).classList.add('loading');
 
             try {
+                const controller = new AbortController();
+                const timeoutId = setTimeout(() => controller.abort(), 10000); // 10 seconds timeout
                 const response = await fetch('chat.php', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ messages: messageHistory })
+                    body: JSON.stringify({ messages: messageHistory }),
+                    signal: controller.signal
                 });
-
+                clearTimeout(timeoutId);
                 const data = await response.json();
 
                 // Remove loading message
@@ -455,7 +447,11 @@
                 }
             } catch (error) {
                 document.querySelector(`[data-id="${loadingId}"]`).remove();
-                addMessage('assistant', 'Error: Failed to connect');
+                if (error.name === 'AbortError') {
+                    addMessage('assistant', 'Error: Request timed out');
+                } else {
+                    addMessage('assistant', 'Error: Failed to connect');
+                }
             }
 
             // Save after response
