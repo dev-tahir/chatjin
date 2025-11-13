@@ -12,6 +12,17 @@ if (!isset($input['messages']) || !is_array($input['messages'])) {
 
 $messages = $input['messages'];
 
+// Add system prompt
+$systemPrompt = [
+    'role' => 'system',
+    'content' => 'No intro or outro, just answer the question as directly as possible.'
+];
+
+// Prepend system prompt if not already present
+if (empty($messages) || $messages[0]['role'] !== 'system') {
+    array_unshift($messages, $systemPrompt);
+}
+
 // Prepare request to OpenRouter
 // The full message history is sent to maintain conversation context
 $data = [
@@ -27,7 +38,7 @@ curl_setopt($ch, CURLOPT_HTTPHEADER, [
     'Content-Type: application/json',
     'Authorization: Bearer ' . OPENROUTER_API_KEY,
     'HTTP-Referer: http://localhost',
-    'X-Title: ChatHTML'
+    'X-Title: ChatJin'
 ]);
 
 $response = curl_exec($ch);
