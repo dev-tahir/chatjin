@@ -43,21 +43,30 @@ AddType application/json .json
     Deny from all
 </Files>
 
-# URL Rewriting (if needed for clean URLs)
+# URL Rewriting for clean URLs
 <IfModule mod_rewrite.c>
     RewriteEngine On
     RewriteBase /
     
-    # Allow actual files and directories
-    RewriteCond %{REQUEST_FILENAME} !-f
-    RewriteCond %{REQUEST_FILENAME} !-d
-    
-    # Don't rewrite existing PHP files
-    RewriteRule ^chat\.php$ - [L]
-    
     # Prevent query string blocking
     RewriteCond %{QUERY_STRING} !^$
     RewriteRule .* - [E=MODSEC:Off]
+    
+    # Allow actual files (CSS, JS, images, etc.)
+    RewriteCond %{REQUEST_FILENAME} -f
+    RewriteRule ^ - [L]
+    
+    # Allow actual directories
+    RewriteCond %{REQUEST_FILENAME} -d
+    RewriteRule ^ - [L]
+    
+    # Allow PHP files to execute normally
+    RewriteCond %{REQUEST_URI} ^/chat\.php$
+    RewriteRule ^ - [L]
+    
+    # Rewrite everything else to index.html (for URL routing like /ask query)
+    # This allows JavaScript to handle the routing
+    RewriteRule ^(.*)$ index.html [L,QSA]
 </IfModule>
 
 # Increase PHP limits if needed

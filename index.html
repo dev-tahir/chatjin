@@ -597,7 +597,7 @@
                 const timeoutId = setTimeout(() => controller.abort(), 10000); // 10 seconds timeout
                 
                 // Send full message history to maintain conversation context
-                const response = await fetch('chat.php', {
+                const response = await fetch('/chat.php', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ messages: messageHistory }),
