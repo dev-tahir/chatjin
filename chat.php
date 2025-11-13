@@ -13,6 +13,7 @@ if (!isset($input['messages']) || !is_array($input['messages'])) {
 $messages = $input['messages'];
 
 // Prepare request to OpenRouter
+// The full message history is sent to maintain conversation context
 $data = [
     'model' => OPENROUTER_MODEL,
     'messages' => $messages

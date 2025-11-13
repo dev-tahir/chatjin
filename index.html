@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ChatHTML</title>
+    <title>ChatJin</title>
     <link rel="icon" type="image/x-icon" href="favicon.ico?v=1">
     <link rel="shortcut icon" type="image/x-icon" href="favicon.ico?v=1">
         <meta name="description" content="Quick LLM Chat is a fast, privacy-friendly AI chatbot. No signup required, chat instantly, and your history stays on your device.">
@@ -182,13 +182,15 @@
         .message.user .bubble { background: #253355; }
         .message.assistant { align-self: flex-start; }
         .copy-btn {
-            font-size: 10px;
+            font-size: 14px;
+            font-weight: bold;
             color: #7f5af0;
             cursor: pointer;
-            margin-left: 8px;
+            margin-left: 5px;
+            /* padding-left: 12px; */
             user-select: none;
             opacity: 0.7;
-            display: inline-block;
+            display: inline;
         }
         .copy-btn:hover {
             opacity: 1;
@@ -579,7 +581,7 @@
             // Display user message
             addMessage('user', message);
             
-            // Add to history
+            // Add to history - this maintains conversation context
             messageHistory.push({ role: 'user', content: message });
 
             // Disable input
@@ -593,6 +595,8 @@
             try {
                 const controller = new AbortController();
                 const timeoutId = setTimeout(() => controller.abort(), 10000); // 10 seconds timeout
+                
+                // Send full message history to maintain conversation context
                 const response = await fetch('chat.php', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
@@ -606,18 +610,23 @@
                 document.querySelector(`[data-id="${loadingId}"]`).remove();
 
                 if (data.error) {
-                    addMessage('assistant', 'Error: ' + data.error);
+                    const errorMsg = 'Error: ' + data.error;
+                    addMessage('assistant', errorMsg);
+                    messageHistory.push({ role: 'assistant', content: errorMsg });
                 } else {
                     addMessage('assistant', data.message);
                     messageHistory.push({ role: 'assistant', content: data.message });
                 }
             } catch (error) {
                 document.querySelector(`[data-id="${loadingId}"]`).remove();
+                let errorMsg;
                 if (error.name === 'AbortError') {
-                    addMessage('assistant', 'Error: Request timed out');
+                    errorMsg = 'Error: Request timed out';
                 } else {
-                    addMessage('assistant', 'Error: Failed to connect');
+                    errorMsg = 'Error: Failed to connect';
                 }
+                addMessage('assistant', errorMsg);
+                messageHistory.push({ role: 'assistant', content: errorMsg });
             }
 
             // Save after response
@@ -913,7 +922,14 @@
                     }, 2000);
                 }
             });
-            bubble.appendChild(copyBtn);
+            
+            // Insert copy button inside the last paragraph if exists, otherwise append to bubble
+            const lastParagraph = bubble.querySelector('p:last-of-type');
+            if (lastParagraph) {
+                lastParagraph.appendChild(copyBtn);
+            } else {
+                bubble.appendChild(copyBtn);
+            }
 
             // Add event listeners for code block copy buttons
             bubble.querySelectorAll('.code-copy-btn').forEach(btn => {

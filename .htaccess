@@ -1,0 +1,72 @@
+# Disable mod_security for this directory (SiteGround specific)
+<IfModule mod_security.c>
+    SecFilterEngine Off
+    SecFilterScanPOST Off
+</IfModule>
+
+# Alternative for newer mod_security2
+<IfModule mod_security2.c>
+    SecRuleEngine Off
+</IfModule>
+
+# Enable error reporting (remove in production if not needed)
+php_flag display_errors Off
+php_flag log_errors On
+
+# Set default handler
+DirectoryIndex index.html index.php
+
+# Allow JSON content type
+AddType application/json .json
+
+# Enable CORS if needed (adjust domain as needed)
+<IfModule mod_headers.c>
+    Header set Access-Control-Allow-Origin "*"
+    Header set Access-Control-Allow-Methods "POST, GET, OPTIONS"
+    Header set Access-Control-Allow-Headers "Content-Type, Authorization"
+</IfModule>
+
+# Protect config files
+<FilesMatch "^config\.php$">
+    Order allow,deny
+    Deny from all
+</FilesMatch>
+
+# Allow PHP files to be accessed
+<FilesMatch "\.php$">
+    SetHandler application/x-httpd-php
+</FilesMatch>
+
+# Prevent access to .htaccess
+<Files .htaccess>
+    Order allow,deny
+    Deny from all
+</Files>
+
+# URL Rewriting (if needed for clean URLs)
+<IfModule mod_rewrite.c>
+    RewriteEngine On
+    RewriteBase /
+    
+    # Allow actual files and directories
+    RewriteCond %{REQUEST_FILENAME} !-f
+    RewriteCond %{REQUEST_FILENAME} !-d
+    
+    # Don't rewrite existing PHP files
+    RewriteRule ^chat\.php$ - [L]
+    
+    # Prevent query string blocking
+    RewriteCond %{QUERY_STRING} !^$
+    RewriteRule .* - [E=MODSEC:Off]
+</IfModule>
+
+# Increase PHP limits if needed
+php_value max_execution_time 300
+php_value max_input_time 300
+php_value post_max_size 20M
+php_value upload_max_filesize 20M
+
+# Prevent common SiteGround blocks
+<IfModule mod_env.c>
+    SetEnv MODSEC_DISABLE_RULES 340162
+</IfModule>
