@@ -367,15 +367,21 @@
         }
         #messageInput {
             flex: 1;
-            padding: 10px 12px;
+            padding: 12px 12px;
             background: #0c1324;
             border: 1px dashed #7f5af0;
             color: #e0f2ff;
+            min-height: 60px;
+            resize: vertical;
+            font-family: "Courier New", monospace;
+            font-size: 14px;
+            line-height: 1.5;
         }
         .chat-card.is-empty #messageInput {
             padding: 14px 18px;
             font-size: 16px;
-            text-align: center;
+            text-align: left;
+            min-height: 80px;
         }
         #messageInput:focus { outline: none; box-shadow: 0 0 0 2px rgba(127, 90, 240, 0.25); }
         .chat-card.is-empty #sendBtn {
@@ -473,7 +479,7 @@
                 </div>
                 <div class="chat-input" id="chatInput">
                     <div class="input-row">
-                        <input type="text" id="messageInput" placeholder="Ask anything…" autocomplete="off">
+                        <textarea id="messageInput" placeholder="Ask anything…" autocomplete="off"></textarea>
                         <button id="sendBtn">Send</button>
                     </div>
                 </div>
@@ -571,9 +577,10 @@
             }
         });
 
-        // Enter key to send
+        // Enter key to send (Shift+Enter for new line)
         messageInput.addEventListener('keypress', (e) => {
-            if (e.key === 'Enter') {
+            if (e.key === 'Enter' && !e.shiftKey) {
+                e.preventDefault();
                 sendBtn.click();
             }
         });
