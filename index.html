@@ -424,6 +424,20 @@
             font-family:inherit;
             margin-bottom:2px;
         }
+        .footer {
+            padding: 16px;
+            text-align: center;
+            border-top: 1px dashed #7f5af0;
+            background: #0c1324;
+            font-size: 14px;
+        }
+        .footer a {
+            color: #7f5af0;
+            text-decoration: none;
+        }
+        .footer a:hover {
+            text-decoration: underline;
+        }
         @media (max-width: 1080px) {
             .sidebar { display: none; }
             main { grid-template-columns: 1fr; }
@@ -487,6 +501,9 @@
                 </div>
             </section>
         </main>
+        <footer class="footer">
+            <a href="https://discord.gg/your-discord" target="_blank">Discord</a>
+        </footer>
         </div>
     </div>
 
