@@ -497,6 +497,83 @@
         .theme-toggle-btn:hover {
             background: var(--bg-button-hover);
         }
+        .support-btn {
+            background: var(--accent);
+            color: var(--bg-primary);
+            border: none;
+            padding: 8px 16px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-family: inherit;
+            font-size: 14px;
+            margin-top: 12px;
+            transition: background 0.2s;
+        }
+        .support-btn:hover {
+            background: var(--accent-lighter);
+        }
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.6);
+        }
+        .modal.show {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+        .modal-content {
+            background-color: var(--bg-secondary);
+            padding: 24px;
+            border: 1px dashed var(--accent);
+            border-radius: 4px;
+            width: 90%;
+            max-width: 500px;
+            max-height: 80vh;
+            overflow-y: auto;
+            color: var(--text-primary);
+        }
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 16px;
+            border-bottom: 1px dashed var(--accent);
+            padding-bottom: 12px;
+        }
+        .modal-header h2 {
+            margin: 0;
+            color: var(--accent);
+        }
+        .modal-close {
+            background: none;
+            border: none;
+            color: var(--accent);
+            font-size: 24px;
+            cursor: pointer;
+            line-height: 1;
+        }
+        .modal-close:hover {
+            color: var(--text-primary);
+        }
+        .modal-body {
+            line-height: 1.6;
+        }
+        .modal-body p {
+            margin-bottom: 12px;
+        }
+        .modal-body ul {
+            margin-left: 20px;
+            margin-bottom: 12px;
+        }
+        .modal-body li {
+            margin-bottom: 6px;
+        }
         @media (max-width: 1080px) {
             .sidebar { display: none; }
             main { grid-template-columns: 1fr; }
@@ -536,6 +613,7 @@
                 </ul>
                 <p>Gemni 2.0 Flash Lite</p>
                 <a href="https://github.com/dev-tahir/chatjin" target="_blank" >View on GitHub</a>
+                <button class="support-btn" id="supportBtn">Support / Help</button>
             </section>
             <section class="chat-card is-empty" id="chatCard">
                 <div class="chat-body">
@@ -560,6 +638,39 @@
                     </div>
                 </div>
             </section>
+        </main>
+        <div class="modal" id="supportModal">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h2>Support / Help</h2>
+                    <button class="modal-close" id="closeModal">&times;</button>
+                </div>
+                <div class="modal-body">
+                    <p><strong>Welcome to ChatJin!</strong></p>
+                    <p>ChatJin is a fast, privacy-friendly AI chat application built on native PHP & HTML.</p>
+                    
+                    <p><strong>Features:</strong></p>
+                    <ul>
+                        <li>No signup required</li>
+                        <li>No payment needed</li>
+                        <li>No database stored</li>
+                        <li>Your data stays private on your device</li>
+                        <li>Powered by Gemini 2.0 Flash Lite</li>
+                    </ul>
+                    
+                    <p><strong>How to use:</strong></p>
+                    <ul>
+                        <li>Type your message in the textarea</li>
+                        <li>Press Enter to send (or click Send button)</li>
+                        <li>Use Shift+Enter to create a new line</li>
+                        <li>Your chat history is saved locally</li>
+                    </ul>
+                    
+                    <p><strong>Need more help?</strong></p>
+                    <p>Check out our <a href="https://github.com/dev-tahir/chatjin" target="_blank">GitHub repository</a> or join our <a href="https://discord.gg/your-discord" target="_blank">Discord community</a>.</p>
+                </div>
+            </div>
+        </div>
         </main>
         <footer class="footer">
             <a href="https://discord.gg/your-discord" target="_blank">Discord</a>
@@ -679,6 +790,25 @@
             if (e.key === 'Enter' && !e.shiftKey) {
                 e.preventDefault();
                 sendBtn.click();
+            }
+        });
+
+        // Modal functionality
+        const supportBtn = document.getElementById('supportBtn');
+        const supportModal = document.getElementById('supportModal');
+        const closeModal = document.getElementById('closeModal');
+
+        supportBtn.addEventListener('click', () => {
+            supportModal.classList.add('show');
+        });
+
+        closeModal.addEventListener('click', () => {
+            supportModal.classList.remove('show');
+        });
+
+        supportModal.addEventListener('click', (e) => {
+            if (e.target === supportModal) {
+                supportModal.classList.remove('show');
             }
         });
 
